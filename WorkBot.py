@@ -1,28 +1,17 @@
 import telebot
+import json
 
+with open('data.json', 'r', encoding='utf-8') as file:
+    data = json.load(file)
+    categories = data['categories']
+    descriptions = data['descriptions']
 
 token = '7851422609:AAGLGzpbLltyAgu0g_F_Orogf27AuBl6-8c'
 bot = telebot.TeleBot(token)
 
 admins_list = [6979004370]
 
-categories = {
-    "Вакансии": ["Курьер", "Фасовщик"],
-    "Выплаты": ["Карта Альфабанка", "Карта Т банка"],
-    "Промокоды": ["Мегамаркет", "Яндекс маркет"],
-}
-
-descriptions = {
-    "Курьер": "Описание вакансии курьера...",
-    "Фасовщик": "Описание вакансии фасовщика...",
-    "Карта Альфабанка": "Описание + рефка",
-    "Карта Т банка": "Описание + рефка",
-    "Мегамаркет": "Описание + промокод",
-    "Яндекс маркет": "Описание + промокод",
-}
-
 seen_users = []
-
 
 def show_categories(call_or_message):
     keyboard = telebot.types.InlineKeyboardMarkup()
@@ -42,7 +31,6 @@ def show_categories(call_or_message):
     else:
         bot.send_message(call_or_message.chat.id, "Выбери категорию:", reply_markup=keyboard)
 
-
 def show_items(call, category):
     found_category = next((cat for cat in categories.keys() if cat.lower() == category.lower()), None)
     if found_category:
@@ -59,7 +47,6 @@ def show_items(call, category):
     else:
         bot.send_message(call.message.chat.id, "Категория не найдена.")
 
-
 def show_description(call, item):
     if item in descriptions:
         keyboard = telebot.types.InlineKeyboardMarkup()
@@ -71,7 +58,6 @@ def show_description(call, item):
             reply_markup=keyboard)
     else:
         bot.send_message(call.message.chat.id, "Информация не найдена. Пожалуйста, обратитесь к оператору технической поддержки")
-
 
 def show_admin_menu(chat_id, message_id=None):
     keyboard = telebot.types.InlineKeyboardMarkup()
@@ -86,7 +72,6 @@ def show_admin_menu(chat_id, message_id=None):
             reply_markup=keyboard)
     else:
         bot.send_message(chat_id, "Выберите действие:", reply_markup=keyboard)
-
 
 def send_welcome_message(chat_id, is_admin=False):
     welcome_text = ('''
@@ -112,7 +97,6 @@ def send_welcome_message(chat_id, is_admin=False):
             caption=welcome_text,
             reply_markup=keyboard)
 
-
 def show_user_menu(chat_id, message_id=None):
     keyboard = telebot.types.InlineKeyboardMarkup()
     keyboard.add(telebot.types.InlineKeyboardButton(text="Выбор категории", callback_data="user_categories"))
@@ -125,7 +109,6 @@ def show_user_menu(chat_id, message_id=None):
             reply_markup=keyboard)
     else:
         bot.send_message(chat_id, "Выберите действие:", reply_markup=keyboard)
-
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
@@ -174,14 +157,12 @@ def handle_callback(call):
     elif data == "back_to_user_menu":
         show_user_menu(call.message.chat.id, call.message.message_id)
 
-
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.from_user.id
     if user_id not in seen_users:
         seen_users.append(user_id)
     send_welcome_message(message.chat.id, is_admin=(user_id in admins_list))
-
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -196,7 +177,6 @@ def handle_message(message):
             bot.send_message(message.chat.id, "Неизвестная команда.")
     else:
         bot.send_message(message.chat.id, "Используйте кнопки для выбора.")
-
 
 if __name__ == '__main__':
     bot.polling(none_stop=True)
